@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/contexts/AuthContext";
-import { SiteStore, SystemCommands, LogStore } from "@/lib/store";
+import { SiteStore, LogStore } from "@/lib/store";
+
+// Commandes système directes
+async function blockSite(domaine: string) {
+  try { const { invoke } = await import("@tauri-apps/api/core"); await invoke("block_site", { domaine }); } catch {}
+}
+async function unblockSite(domaine: string) {
+  try { const { invoke } = await import("@tauri-apps/api/core"); await invoke("unblock_site", { domaine }); } catch {}
+}
 import type { CategoreSite, Site } from "@/lib/types";
 
 const CATEGORIES: Record<CategoreSite, { label: string; emoji: string }> = {
@@ -40,7 +48,7 @@ export default function SitesPage() {
     if (!profilActif || !form.domaine.trim()) return;
     const domaine = form.domaine.trim().replace(/^https?:\/\//, "").replace(/^www\./, "");
     SiteStore.add({ domaine, categorie: form.categorie, profil_id: profilActif.id, bloque: true });
-    await SystemCommands.blockSite(domaine);
+    await blockSite(domaine);
     LogStore.add({ profil_id: profilActif.id, type: "site_bloque", detail: `Site bloqué : ${domaine}` });
     setForm({ domaine: "", categorie: "autre" });
     setShowModal(false);
@@ -50,16 +58,16 @@ export default function SitesPage() {
   const handleToggle = async (site: Site) => {
     SiteStore.toggle(site.id);
     if (site.bloque) {
-      await SystemCommands.unblockSite(site.domaine);
+      await unblockSite(site.domaine);
     } else {
-      await SystemCommands.blockSite(site.domaine);
+      await blockSite(site.domaine);
     }
     load();
   };
 
   const handleDelete = async (site: Site) => {
     SiteStore.delete(site.id);
-    await SystemCommands.unblockSite(site.domaine);
+    await unblockSite(site.domaine);
     load();
   };
 
@@ -67,7 +75,7 @@ export default function SitesPage() {
     if (!profilActif) return;
     if (sites.find((s) => s.domaine === p.domaine)) return;
     SiteStore.add({ domaine: p.domaine, categorie: p.cat, profil_id: profilActif.id, bloque: true });
-    await SystemCommands.blockSite(p.domaine);
+    await blockSite(p.domaine);
     load();
   };
 
