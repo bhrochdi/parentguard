@@ -19,31 +19,18 @@ function uid() {
 
 // ─── PROFILS ──────────────────────────────────────────
 export const ProfilStore = {
-  list(): Profil[] {
-    return get<Profil[]>("pg_profils", []);
-  },
-  get(id: string): Profil | undefined {
-    return this.list().find((p) => p.id === id);
-  },
+  list(): Profil[] { return get<Profil[]>("pg_profils", []); },
+  get(id: string): Profil | undefined { return this.list().find((p) => p.id === id); },
   create(data: Omit<Profil, "id" | "created_at">): Profil {
-    const profil: Profil = {
-      ...data, id: uid(), created_at: new Date().toISOString(),
-    };
-    const list = this.list();
-    list.push(profil);
-    set("pg_profils", list);
-    return profil;
+    const profil: Profil = { ...data, id: uid(), created_at: new Date().toISOString() };
+    const list = this.list(); list.push(profil); set("pg_profils", list); return profil;
   },
   update(id: string, data: Partial<Profil>): void {
-    const list = this.list().map((p) => p.id === id ? { ...p, ...data } : p);
-    set("pg_profils", list);
+    set("pg_profils", this.list().map((p) => p.id === id ? { ...p, ...data } : p));
   },
   delete(id: string): void {
     set("pg_profils", this.list().filter((p) => p.id !== id));
-    // Nettoyer les données liées
-    SiteStore.deleteByProfil(id);
-    AppStore.deleteByProfil(id);
-    LogStore.deleteByProfil(id);
+    SiteStore.deleteByProfil(id); AppStore.deleteByProfil(id); LogStore.deleteByProfil(id);
   },
 };
 
@@ -55,22 +42,14 @@ export const SiteStore = {
   },
   add(data: Omit<Site, "id" | "created_at">): Site {
     const site: Site = { ...data, id: uid(), created_at: new Date().toISOString() };
-    const list = get<Site[]>("pg_sites", []);
-    list.push(site);
-    set("pg_sites", list);
-    return site;
+    const list = get<Site[]>("pg_sites", []); list.push(site); set("pg_sites", list); return site;
   },
-  delete(id: string): void {
-    set("pg_sites", get<Site[]>("pg_sites", []).filter((s) => s.id !== id));
-  },
+  delete(id: string): void { set("pg_sites", get<Site[]>("pg_sites", []).filter((s) => s.id !== id)); },
   deleteByProfil(profilId: string): void {
     set("pg_sites", get<Site[]>("pg_sites", []).filter((s) => s.profil_id !== profilId));
   },
   toggle(id: string): void {
-    const list = get<Site[]>("pg_sites", []).map((s) =>
-      s.id === id ? { ...s, bloque: !s.bloque } : s
-    );
-    set("pg_sites", list);
+    set("pg_sites", get<Site[]>("pg_sites", []).map((s) => s.id === id ? { ...s, bloque: !s.bloque } : s));
   },
 };
 
@@ -82,22 +61,14 @@ export const AppStore = {
   },
   add(data: Omit<AppBloquee, "id" | "created_at">): AppBloquee {
     const app: AppBloquee = { ...data, id: uid(), created_at: new Date().toISOString() };
-    const list = get<AppBloquee[]>("pg_apps", []);
-    list.push(app);
-    set("pg_apps", list);
-    return app;
+    const list = get<AppBloquee[]>("pg_apps", []); list.push(app); set("pg_apps", list); return app;
   },
-  delete(id: string): void {
-    set("pg_apps", get<AppBloquee[]>("pg_apps", []).filter((a) => a.id !== id));
-  },
+  delete(id: string): void { set("pg_apps", get<AppBloquee[]>("pg_apps", []).filter((a) => a.id !== id)); },
   deleteByProfil(profilId: string): void {
     set("pg_apps", get<AppBloquee[]>("pg_apps", []).filter((a) => a.profil_id !== profilId));
   },
   toggle(id: string): void {
-    const list = get<AppBloquee[]>("pg_apps", []).map((a) =>
-      a.id === id ? { ...a, bloque: !a.bloque } : a
-    );
-    set("pg_apps", list);
+    set("pg_apps", get<AppBloquee[]>("pg_apps", []).map((a) => a.id === id ? { ...a, bloque: !a.bloque } : a));
   },
 };
 
@@ -112,7 +83,6 @@ export const LogStore = {
     const log: LogActivite = { ...data, id: uid(), timestamp: new Date().toISOString() };
     const list = get<LogActivite[]>("pg_logs", []);
     list.push(log);
-    // Garder seulement les 500 derniers logs
     if (list.length > 500) list.splice(0, list.length - 500);
     set("pg_logs", list);
   },
@@ -126,40 +96,28 @@ export const StatsStore = {
   today(profilId: string): StatsJour {
     const today = new Date().toISOString().split("T")[0];
     const all = get<StatsJour[]>("pg_stats", []);
-    return (
-      all.find((s) => s.profil_id === profilId && s.date === today) ?? {
-        profil_id: profilId, date: today,
-        minutes_utilisees: 0, sites_bloques_count: 0, apps_bloquees_count: 0,
-      }
-    );
+    return all.find((s) => s.profil_id === profilId && s.date === today) ?? {
+      profil_id: profilId, date: today, minutes_utilisees: 0, sites_bloques_count: 0, apps_bloquees_count: 0,
+    };
   },
   week(profilId: string): StatsJour[] {
     const all = get<StatsJour[]>("pg_stats", []);
     const days: StatsJour[] = [];
     for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
+      const d = new Date(); d.setDate(d.getDate() - i);
       const date = d.toISOString().split("T")[0];
-      days.push(
-        all.find((s) => s.profil_id === profilId && s.date === date) ?? {
-          profil_id: profilId, date,
-          minutes_utilisees: Math.floor(Math.random() * 180), // démo
-          sites_bloques_count: Math.floor(Math.random() * 5),
-          apps_bloquees_count: 0,
-        }
-      );
+      days.push(all.find((s) => s.profil_id === profilId && s.date === date) ?? {
+        profil_id: profilId, date, minutes_utilisees: 0, sites_bloques_count: 0, apps_bloquees_count: 0,
+      });
     }
     return days;
   },
-  incrementMinutes(profilId: string, minutes: number): void {
+  updateMinutes(profilId: string, minutes: number): void {
     const today = new Date().toISOString().split("T")[0];
     const all = get<StatsJour[]>("pg_stats", []);
     const idx = all.findIndex((s) => s.profil_id === profilId && s.date === today);
-    if (idx >= 0) {
-      all[idx].minutes_utilisees += minutes;
-    } else {
-      all.push({ profil_id: profilId, date: today, minutes_utilisees: minutes, sites_bloques_count: 0, apps_bloquees_count: 0 });
-    }
+    if (idx >= 0) { all[idx].minutes_utilisees = minutes; }
+    else { all.push({ profil_id: profilId, date: today, minutes_utilisees: minutes, sites_bloques_count: 0, apps_bloquees_count: 0 }); }
     set("pg_stats", all);
   },
 };
@@ -168,76 +126,59 @@ export const StatsStore = {
 export const ParamsStore = {
   get(): Parametres {
     return get<Parametres>("pg_params", {
-      mot_de_passe_admin: "admin1234",
-      pin_admin: "1234",
-      demarrage_avec_windows: false,
-      theme: "light",
+      mot_de_passe_admin: "admin1234", pin_admin: "1234",
+      demarrage_avec_windows: false, theme: "light",
     });
   },
-  save(data: Partial<Parametres>): void {
-    set("pg_params", { ...this.get(), ...data });
-  },
+  save(data: Partial<Parametres>): void { set("pg_params", { ...this.get(), ...data }); },
 };
 
-// ─── COMMANDES SYSTÈME (via Tauri invoke) ─────────────
-export const SystemCommands = {
-  // Bloquer un site dans le fichier hosts
-  async blockSite(domaine: string): Promise<void> {
-    try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      await invoke("block_site", { domaine });
-    } catch {
-      console.warn(`[Dev] Bloquer site: ${domaine}`);
-    }
-  },
+// ─── SYNCHRONISATION AVEC RUST ────────────────────────
+// Envoie les règles du profil actif au service de monitoring Rust
 
-  // Débloquer un site
-  async unblockSite(domaine: string): Promise<void> {
-    try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      await invoke("unblock_site", { domaine });
-    } catch {
-      console.warn(`[Dev] Débloquer site: ${domaine}`);
-    }
-  },
+export async function syncReglesToRust(profil: Profil): Promise<void> {
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
 
-  // Couper internet
-  async cutInternet(): Promise<void> {
-    try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      await invoke("cut_internet");
-    } catch {
-      console.warn("[Dev] Couper internet");
-    }
-  },
+    const sites = SiteStore.list(profil.id)
+      .filter((s) => s.bloque)
+      .map((s) => s.domaine);
 
-  // Rétablir internet
-  async restoreInternet(): Promise<void> {
-    try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      await invoke("restore_internet");
-    } catch {
-      console.warn("[Dev] Rétablir internet");
-    }
-  },
+    const apps = AppStore.list(profil.id)
+      .filter((a) => a.bloque)
+      .map((a) => a.executable);
 
-  // Tuer un processus
-  async killProcess(executable: string): Promise<void> {
-    try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      await invoke("kill_process", { executable });
-    } catch {
-      console.warn(`[Dev] Tuer processus: ${executable}`);
-    }
-  },
+    const regles = {
+      profil_id: profil.id,
+      apps_bloquees: apps,
+      sites_bloques: sites,
+      limite_minutes: profil.limite_quotidienne_minutes,
+      plages: profil.plages_autorisees ?? [],
+      actif: true,
+    };
 
-  // Lister les processus actifs
-  async listProcesses(): Promise<string[]> {
-    try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      return await invoke<string[]>("list_processes");
-    } catch {
-      return ["chrome.exe", "firefox.exe", "explorer.exe"];
-    }
-  },
-};
+    await invoke("update_rules", { regles });
+    await invoke("start_monitoring");
+    console.log("[ParentGuard] Règles synchronisées avec le service Rust", regles);
+  } catch (err) {
+    console.warn("[ParentGuard] Mode dev — Rust non disponible:", err);
+  }
+}
+
+export async function stopMonitoring(): Promise<void> {
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    await invoke("stop_monitoring");
+  } catch {
+    // Mode dev
+  }
+}
+
+export async function getScreenTimeFromRust(): Promise<number> {
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    return await invoke<number>("get_screen_time");
+  } catch {
+    return 0;
+  }
+}
