@@ -57,10 +57,59 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'ParentGuard ${{ github.ref_name }}'
           releaseBody: |
-            ## ParentGuard ${{ github.ref_name }}
-            ### Téléchargements
-            - **Windows** : `ParentGuard_x64-setup.exe`
-            - **macOS Intel** : `ParentGuard_x64.dmg`
-            - **macOS Apple Silicon** : `ParentGuard_aarch64.dmg`
+            ## 🛡️ ParentGuard ${{ github.ref_name }}
+            Application de contrôle parental pour Windows et macOS.
+
+            ---
+
+            ## 📥 Téléchargements
+
+            | Système | Fichier |
+            |---------|---------|
+            | 🪟 Windows | `ParentGuard_x64-setup.exe` |
+            | 🍎 macOS Intel | `ParentGuard_x64.dmg` |
+            | 🍎 macOS Apple Silicon (M1/M2/M3) | `ParentGuard_aarch64.dmg` |
+
+            ---
+
+            ## ⚠️ Message important à la première installation
+
+            ### Sur Windows
+            > Windows va afficher **"Windows a protégé votre PC"** ou **"Éditeur inconnu"**.
+            > C'est normal car l'application n'est pas signée commercialement.
+            >
+            > ✅ **Comment installer quand même :**
+            > 1. Cliquez sur **"Informations complémentaires"**
+            > 2. Cliquez sur **"Exécuter quand même"**
+            > 3. L'installation démarre normalement
+
+            ### Sur macOS
+            > macOS va afficher **"Impossible d'ouvrir car le développeur ne peut pas être vérifié"**.
+            > C'est normal pour la même raison.
+            >
+            > ✅ **Comment ouvrir quand même :**
+            > 1. **Clic droit** sur le fichier `.dmg` (ou Ctrl+clic)
+            > 2. Cliquez sur **"Ouvrir"**
+            > 3. Cliquez à nouveau sur **"Ouvrir"** dans la boîte de dialogue
+            > 4. L'application s'ouvre normalement
+
+            > 🔒 **Cette application est 100% sûre.** Elle ne se connecte jamais à internet,
+            > toutes les données restent sur votre PC. Le message d'avertissement apparaît
+            > uniquement parce qu'elle n'a pas de certificat commercial (~500€/an).
+
+            ---
+
+            ## 🔑 Accès par défaut
+            - **Mot de passe parent :** `admin1234`
+            - **PIN mode enfant :** `1234`
+
+            > ⚠️ Changez ces valeurs dans **Paramètres** dès la première utilisation.
+
+            ---
+
+            ## 🚀 Lancer en administrateur
+            > Pour que le blocage de sites et d'applications fonctionne :
+            > - **Windows :** Clic droit sur l'icône → **"Exécuter en tant qu'administrateur"**
+            > - **macOS :** L'application demande les permissions automatiquement
           releaseDraft: false
           prerelease: false

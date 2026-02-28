@@ -8,27 +8,36 @@ import AppsPage from "@/pages/Apps";
 import RapportsPage from "@/pages/Rapports";
 import ProfilsPage from "@/pages/Profils";
 import ParametresPage from "@/pages/Parametres";
-import { ChoixProfilScreen, KidScreen } from "@/pages/KidMode";
+import { KidScreen } from "@/pages/KidMode";
+import WelcomeDialog from "@/components/WelcomeDialog";
 import "@/index.css";
 
 function AppRoutes() {
   const { screen } = useAuth();
 
-  if (screen === "login")  return <LoginPage />;
-  if (screen === "kid")    return <KidScreen />;
+  if (screen === "login") return (
+    <>
+      <WelcomeDialog />
+      <LoginPage />
+    </>
+  );
 
-  // Pas d'écran choix_profil séparé — on va directement en kid
+  if (screen === "kid") return <KidScreen />;
+
   return (
-    <Routes>
-      <Route path="/dashboard"  element={<DashboardPage />} />
-      <Route path="/temps"      element={<TempsPage />} />
-      <Route path="/sites"      element={<SitesPage />} />
-      <Route path="/apps"       element={<AppsPage />} />
-      <Route path="/rapports"   element={<RapportsPage />} />
-      <Route path="/profils"    element={<ProfilsPage />} />
-      <Route path="/parametres" element={<ParametresPage />} />
-      <Route path="*"           element={<Navigate to="/dashboard" replace />} />
-    </Routes>
+    <>
+      <WelcomeDialog />
+      <Routes>
+        <Route path="/dashboard"   element={<DashboardPage />} />
+        <Route path="/temps"       element={<TempsPage />} />
+        <Route path="/sites"       element={<SitesPage />} />
+        <Route path="/apps"        element={<AppsPage />} />
+        <Route path="/rapports"    element={<RapportsPage />} />
+        <Route path="/profils"     element={<ProfilsPage />} />
+        <Route path="/parametres"  element={<ParametresPage />} />
+        <Route path="*"            element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </>
   );
 }
 
